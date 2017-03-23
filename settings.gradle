@@ -1,0 +1,5 @@
+rootProject.name = 'challenge'
+
+include 'hello'
+include 'data'
+include 'product'

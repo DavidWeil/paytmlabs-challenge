@@ -1,0 +1,14 @@
+### Gradle template
+.gradle
+build/
+
+# Local gradle settings
+gradle.properties
+
+# Avoid ignoring Gradle wrapper jar file (.jar files are usually ignored)
+!gradle-wrapper.jar
+
+# IntelliJ
+/out/
+.idea/artifacts/
+.idea/libraries/
