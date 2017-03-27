@@ -35,5 +35,6 @@
     <orderEntry type="library" name="Gradle: javax.servlet:javax.servlet-api:3.0.1" level="project" />
     <orderEntry type="library" name="Gradle: com.google.code.gson:gson:2.8.0" level="project" />
     <orderEntry type="module" module-name="data" />
+    <orderEntry type="module" module-name="filter" />
   </component>
 </module>
