@@ -1,8 +1,9 @@
 package com.example.filter;
 
 import org.junit.Test;
-import static org.mockito.Mockito.*;
+import org.mockito.ArgumentCaptor;
 
+import static org.mockito.Mockito.*;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -70,6 +71,28 @@ public class AccessFilterTest {
         verify(request, times(1)).getCookies();
         verify(response, times(1)).sendRedirect("/login");
         verify(filterChain, never()).doFilter(request, response);
+    }
+
+    @Test
+    public void testReturnCookie() throws IOException, ServletException {
+
+        HttpServletRequest request = mock(HttpServletRequest.class);
+        when(request.getContextPath()).thenReturn("/product");
+        when(request.getPathInfo()).thenReturn("/104329");
+        HttpServletResponse response = mock(HttpServletResponse.class);
+        FilterChain filterChain = mock(FilterChain.class);
+
+        Filter accessFilter = constructFilter();
+        accessFilter.doFilter(request, response, filterChain);
+
+        verify(request).getCookies();
+        verify(response).sendRedirect("/login");
+        verify(filterChain, never()).doFilter(request, response);
+
+        ArgumentCaptor<Cookie> cookieArg = ArgumentCaptor.forClass(Cookie.class);
+        verify(response, times(1)).addCookie(cookieArg.capture());
+        assertEquals("originalURL", cookieArg.getValue().getName());
+        assertEquals("/product/104329", cookieArg.getValue().getValue());
     }
 
     private Filter constructFilter() throws ServletException {

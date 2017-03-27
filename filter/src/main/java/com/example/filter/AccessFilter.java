@@ -42,7 +42,14 @@ public class AccessFilter implements Filter {
         }
 
         if (!"authorized".equalsIgnoreCase(authToken)) {
+            // Store this path so we can return after logging in.
+            String path = req.getContextPath();
+            String info = req.getPathInfo();
+            if (info != null) {
+                path = path + info;
+            }
             HttpServletResponse resp = (HttpServletResponse) response;
+            resp.addCookie(new Cookie("originalURL", path));
             resp.sendRedirect("/" + loginPath);
         }
         else {
