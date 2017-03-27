@@ -2,7 +2,6 @@ package com.example.filter;
 
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
-
 import static org.mockito.Mockito.*;
 
 import javax.servlet.Filter;
