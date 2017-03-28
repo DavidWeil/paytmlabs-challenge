@@ -1,0 +1,49 @@
+version 'unspecified'
+
+apply plugin: 'java'
+apply plugin: 'war'
+apply plugin: 'com.bmuschko.docker-java-application'
+
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath 'com.bmuschko:gradle-docker-plugin:3.0.6'
+    }
+}
+
+sourceCompatibility = 1.5
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile 'com.google.code.gson:gson:2.8.0'
+    compile 'javax.servlet:javax.servlet-api:3.0.1'
+    testCompile group: 'junit', name: 'junit', version: '4.11'
+}
+
+task prepareDockerDir(type: Copy, dependsOn: war) {
+    from ("src/main/docker/") {
+        include 'Dockerfile'
+    }
+
+    from ('build/libs/') {
+        include '*.war'
+    }
+
+    rename ".*.war", "product.war"
+    into "build/docker"
+}
+
+task buildDockerImage(type: com.bmuschko.gradle.docker.tasks.image.DockerBuildImage) {
+    dependsOn prepareDockerDir
+
+    group = "build"
+    description = 'Creates the product webapp docker image'
+
+    inputDir = project.file('build/docker')
+    tag = 'challenge/product'
+}
