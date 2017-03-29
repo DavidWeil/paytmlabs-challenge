@@ -44,8 +44,8 @@ task buildDockerImage(type: com.bmuschko.gradle.docker.tasks.image.DockerBuildIm
     dependsOn prepareDockerDir
 
     group = "build"
-    description = 'Creates the product webapp docker image'
+    description = 'Creates the login webapp docker image'
 
     inputDir = project.file('build/docker')
-    tag = 'challenge/product'
+    tag = 'challenge/login'
 }

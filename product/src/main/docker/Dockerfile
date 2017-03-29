@@ -1,4 +1,4 @@
-FROM tomcat:8-alpine
+FROM challenge/user
 
 EXPOSE 8080
 

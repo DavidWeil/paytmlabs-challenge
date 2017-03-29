@@ -27,7 +27,7 @@ the REST interface, but found that it did not work well with unit testing.  (It 
 that IDEA did not want to play well with Jetty, but I didn't want to spend the time trying to debug
 it.)  Obviously something like the separation of methods according to media type would have been
 nice, but I opted to continue with the challenge using basic servlets instead of investigating
-JAX-RS implementation.
+a different JAX-RS implementation.
 
 Rather than package a database and build the access service, I opted (for simplicity) to store user
 data locally in the User servlet.  That means that "persistence" is purely theoretical for now, but
