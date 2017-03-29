@@ -5,11 +5,13 @@ Challenge exercise for PaytmLabs
 It was fairly obvious that I needed a container-based solution, and an as-close-to-stateless as
 possible server.  I wasn't able to get Kubernetes running stably on my machine, so that left Docker
 as a container platform.  Building a set of individual REST-type servlets allows for their deployments
-to scale independently of one another.
+to scale independently of one another.  However, to avoid having to build a reverse proxy (and bundle
+NGINX or similar tool), I opted to package all the wars in a single docker image instead of building
+separate docker images for each servlet.
 
 I opted for the LCBO option because last time I played with the Twitter API the results of searching
 for tweets was disappointing.  At least with the LCBO there's always data available, and testing
-is affected by what other people are talking about.
+is not affected by what other people are talking about.
 
 (I admit that when I made that decision I hadn't realised that the LCBO API didn't provide a search
 function, which would have been the true winner for choosing it over the others.)
@@ -20,14 +22,24 @@ also being quite flexible (I used that to specify custom deserializers for all t
 Java because I'm most comfortable in it, though I did briefly consider Scala.  (Case classes work
 very well for deserializing data into.)
 
+I did build the "hello world" example using Jersey (JAX-RS/JSR 311) to simplify the description of
+the REST interface, but found that it did not work well with unit testing.  (It may simply have been
+that IDEA did not want to play well with Jetty, but I didn't want to spend the time trying to debug
+it.)  Obviously something like the separation of methods according to media type would have been
+nice, but I opted to continue with the challenge using basic servlets instead of investigating
+JAX-RS implementation.
+
+Rather than package a database and build the access service, I opted (for simplicity) to store user
+data locally in the User servlet.  That means that "persistence" is purely theoretical for now, but
+data will persist while the application is running.
+
 ## Post Mortem
-I spent too much time fiddling with Kubernetes/Docker when I should have been simply deploying
-apps into a local tomcat instance for development.  I have only completed 3 challenges, and I had
-more ambitious plans for stage 3 than I've accomplished, including selecting a preferred store and
-reporting inventory levels at that location.  I've also gotten bogged down trying to build security
-into the system - I'm still trying to figure how to use a JDBCRealm for user/password data that
-talks to a database that's also accessible to from a different (unprotected) webapp for adding new
-users, removing users and changing passwords.
+I spent too much time fiddling with tools:  Kubernetes/Docker when I should have been simply
+deploying apps into a local tomcat instance for development, Jersey when I didn't know it well enough
+to understand its limitations.
+
+I also had overly ambitious plans; for example in stage 3 I was planning on including selecting a
+preferred store and reporting inventory levels at that location.
 
 ## Running the App
 The application - such as it is - works, at least.  Build the docker image for the product module
