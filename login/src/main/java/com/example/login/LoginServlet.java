@@ -185,8 +185,8 @@ public final class LoginServlet extends HttpServlet {
         writer.println("<form action=\"login\" method=\"post\">");
         writer.println("<h4>Login</h4>");
         writer.println("<input type=\"hidden\" name=\"action\" value=\"login\">");
-        writer.println("Username: <input type=\"text\" name=\"username\">");
-        writer.println("Password: <input type=\"text\" name=\"password\">");
+        writer.println("Username: <input type=\"text\" name=\"username\"><br>");
+        writer.println("Password: <input type=\"text\" name=\"password\"><br>");
         writer.println("<input type=\"submit\" value=\"Login\">");
         writer.println("</form>");
         writer.println("</div>");
@@ -194,8 +194,8 @@ public final class LoginServlet extends HttpServlet {
         writer.println("<form action=\"login\" method=\"post\">");
         writer.println("<h4>Sign Up</h4>");
         writer.println("<input type=\"hidden\" name=\"action\" value=\"signup\">");
-        writer.println("Username: <input type=\"text\" name=\"username\">");
-        writer.println("Password: <input type=\"text\" name=\"password\">");
+        writer.println("Username: <input type=\"text\" name=\"username\"><br>");
+        writer.println("Password: <input type=\"text\" name=\"password\"><br>");
         writer.println("<input type=\"submit\" value=\"Sign Up\">");
         writer.println("</form>");
         writer.println("</div>");
