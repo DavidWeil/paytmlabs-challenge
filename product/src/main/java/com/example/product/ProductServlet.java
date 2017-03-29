@@ -73,7 +73,9 @@ public final class ProductServlet extends HttpServlet {
 
             if (sendJSON) {
                 response.setContentType("application/json");
-                gson.toJson(results.getResults(), response.getWriter());
+                PrintWriter writer = response.getWriter();
+                gson.toJson(results.getResults(), writer);
+                writer.flush();
             }
             else {
                 String pageURL = getBaseUrl(request);
@@ -102,7 +104,9 @@ public final class ProductServlet extends HttpServlet {
 
             if (sendJSON) {
                 response.setContentType("application/json");
-                gson.toJson(results.getResult(), response.getWriter());
+                PrintWriter writer = response.getWriter();
+                gson.toJson(results.getResult(), writer);
+                writer.flush();
             }
             else {
                 showProductPage(response, results);
