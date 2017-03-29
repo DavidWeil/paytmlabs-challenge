@@ -60,7 +60,7 @@ public final class LoginServlet extends HttpServlet {
         // At this point the user name is safe for inclusion in a URL.
 
         // Get the user (test for existing if sign-up)
-        HttpURLConnection connection = (HttpURLConnection) new URL("/user/" + user).openConnection();
+        HttpURLConnection connection = (HttpURLConnection) new URL(getExternalUrl(req) + "/user/" + user).openConnection();
         connection.connect();
         int status = connection.getResponseCode();
         User u;
@@ -87,21 +87,23 @@ public final class LoginServlet extends HttpServlet {
                 return;
             }
         }
-        else {  // "signup"
+        else {  // "sign-up"
             if (status == 200) {
                 showLoginPage(resp, "That user name is already in use.");
                 return;
             }
 
-            connection = (HttpURLConnection) new URL("/user/" + user).openConnection();
-            connection.setRequestMethod("PUT");
+            connection = (HttpURLConnection) new URL(getExternalUrl(req) + "/user/" + user).openConnection();
+            connection.setDoOutput(true);
+            connection.setRequestMethod("POST");
             Writer writer = new OutputStreamWriter(connection.getOutputStream());
             u = new User(user);
             u.setPasswordHash(getSHAHash(pass));
             gson.toJson(u, writer);
+            writer.flush();
             connection.connect();
             status = connection.getResponseCode();
-            if (status != 200 && status != 201) {
+            if (status != HttpServletResponse.SC_OK && status != HttpServletResponse.SC_CREATED) {
                 showLoginPage(resp, "Error creating user: " + connection.getResponseMessage());
                 return;
             }
@@ -116,6 +118,13 @@ public final class LoginServlet extends HttpServlet {
             redirectURL = "/product";
         }
         resp.sendRedirect(redirectURL);
+    }
+
+    private static String getExternalUrl(HttpServletRequest request) {
+        String scheme = request.getScheme() + "://";
+        String serverName = request.getServerName();
+        String serverPort = (request.getServerPort() == 80) ? "" : ":" + request.getServerPort();
+        return scheme + serverName + serverPort;
     }
 
     private String getCookieValue(HttpServletRequest request, String cookieName) {
