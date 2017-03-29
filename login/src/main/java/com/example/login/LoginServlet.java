@@ -19,6 +19,9 @@ import java.util.regex.Pattern;
 
 /**
  * The servlet that handles login (authentication) and user sign-up.
+ *
+ * The idea here is that this servlet will receive redirected requests that aren't authenticated, show the login
+ * page, and when the user logs in or signs up, will redirect back to the originating URL with authentication set.
  */
 public final class LoginServlet extends HttpServlet {
 
@@ -36,6 +39,7 @@ public final class LoginServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 
+        // Make sure the form fields are provided.
         String action = req.getParameter("action");
         String user = req.getParameter("username");
         String pass = req.getParameter("password");
@@ -87,7 +91,7 @@ public final class LoginServlet extends HttpServlet {
                 return;
             }
         }
-        else {  // "sign-up"
+        else {  // sign-up
             if (status == 200) {
                 showLoginPage(resp, "That user name is already in use.");
                 return;
@@ -120,6 +124,7 @@ public final class LoginServlet extends HttpServlet {
         resp.sendRedirect(redirectURL);
     }
 
+    // This is the container's location (without the context part of the path), so we can address other contexts.
     private static String getExternalUrl(HttpServletRequest request) {
         String scheme = request.getScheme() + "://";
         String serverName = request.getServerName();
@@ -140,15 +145,14 @@ public final class LoginServlet extends HttpServlet {
         return null;
     }
 
+    // Convenience method so we can get Cookies with HttpOnly set.
     private Cookie getHttpCookie(String name, String value) {
         Cookie c = new Cookie(name, value);
         c.setHttpOnly(true);
         return c;
     }
 
-    /**
-     * Note that as a simplification of a real authentication system, this does not bother salting the hashes.
-     */
+    // Note that as a simplification of a real authentication system, this does not bother salting the hashes.
     private String getSHAHash(String password) {
 
         java.security.MessageDigest d;
@@ -214,6 +218,7 @@ public final class LoginServlet extends HttpServlet {
         writer.println("</html>");
     }
 
+    // User names should match only a sequence of word characters.
     private boolean isUnclean(String test) {
         // Examine the leading string of word characters.
         Pattern p = Pattern.compile("^(\\w*)");

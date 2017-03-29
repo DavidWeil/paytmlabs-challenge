@@ -36,7 +36,7 @@ public class UserServletTest {
         Gson gson = new GsonBuilder().create();
         User user = gson.fromJson(USER_JSON, User.class);
         UserServlet servlet = new UserServlet();
-        servlet.userMap.put(user.getName(), user);
+        servlet.userMap.put(user.getName(), new UserData(user));
         servlet.doGet(request, response);
 
         verify(response).setContentType("application/json");
@@ -86,7 +86,7 @@ public class UserServletTest {
         Gson gson = new GsonBuilder().create();
         User user = gson.fromJson(USER_JSON, User.class);
         UserServlet servlet = new UserServlet();
-        servlet.userMap.put(user.getName(), user);
+        servlet.userMap.put(user.getName(), new UserData(user));
         servlet.doGet(request, response);
 
         verify(response).sendError(HttpServletResponse.SC_BAD_REQUEST, UserServlet.BAD_COMMAND);
@@ -102,7 +102,7 @@ public class UserServletTest {
         Gson gson = new GsonBuilder().create();
         User user = gson.fromJson(USER_JSON, User.class);
         UserServlet servlet = new UserServlet();
-        servlet.userMap.put(user.getName(), user);
+        servlet.userMap.put(user.getName(), new UserData(user));
         servlet.doGet(request, response);
 
         verify(response).sendError(HttpServletResponse.SC_BAD_REQUEST, UserServlet.BAD_COMMAND);
@@ -113,6 +113,7 @@ public class UserServletTest {
 
         HttpServletRequest request = mock(HttpServletRequest.class);
         when(request.getPathInfo()).thenReturn("/steve/recent");
+        when(request.getHeader("Accept")).thenReturn("application/json");
         HttpServletResponse response = mock(HttpServletResponse.class);
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         PrintWriter writer = new PrintWriter(baos, true);
@@ -121,12 +122,12 @@ public class UserServletTest {
         Gson gson = new GsonBuilder().create();
         User user = gson.fromJson(USER_JSON, User.class);
         UserServlet servlet = new UserServlet();
-        servlet.userMap.put(user.getName(), user);
+        servlet.userMap.put(user.getName(), new UserData(user));
         servlet.doGet(request, response);
 
         verify(response).setContentType("application/json");
         verify(response).setStatus(HttpServletResponse.SC_OK);
-        assertEquals("[]\n", baos.toString());
+        assertEquals("[]", baos.toString());
     }
 
     @Test
@@ -142,7 +143,7 @@ public class UserServletTest {
         Gson gson = new GsonBuilder().create();
         User user = gson.fromJson(USER_JSON, User.class);
         UserServlet servlet = new UserServlet();
-        servlet.userMap.put(user.getName(), user);
+        servlet.userMap.put(user.getName(), new UserData(user));
         servlet.doGet(request, response);
 
         verify(response).setContentType("text/plain");
@@ -203,7 +204,7 @@ public class UserServletTest {
         Gson gson = new GsonBuilder().create();
         User user = gson.fromJson(USER_JSON, User.class);
         UserServlet servlet = new UserServlet();
-        servlet.userMap.put(user.getName(), user);
+        servlet.userMap.put(user.getName(), new UserData(user));
         servlet.doPost(request, response);
 
         verify(response).sendError(HttpServletResponse.SC_CONFLICT, UserServlet.USER_ID_ALREADY_EXISTS);
@@ -215,7 +216,7 @@ public class UserServletTest {
         Gson gson = new GsonBuilder().create();
         User user = gson.fromJson(USER_JSON, User.class);
         UserServlet servlet = new UserServlet();
-        servlet.userMap.put(user.getName(), user);
+        servlet.userMap.put(user.getName(), new UserData(user));
 
         HttpServletRequest request = mock(HttpServletRequest.class);
         when(request.getPathInfo()).thenReturn("/steve/recent");
@@ -252,7 +253,7 @@ public class UserServletTest {
         Gson gson = new GsonBuilder().create();
         User user = gson.fromJson(USER_JSON, User.class);
         UserServlet servlet = new UserServlet();
-        servlet.userMap.put(user.getName(), user);
+        servlet.userMap.put(user.getName(), new UserData(user));
         servlet.doPost(request, response);
 
         verify(response).setStatus(HttpServletResponse.SC_ACCEPTED);
@@ -272,7 +273,7 @@ public class UserServletTest {
         Gson gson = new GsonBuilder().create();
         User user = gson.fromJson(USER_JSON, User.class);
         UserServlet servlet = new UserServlet();
-        servlet.userMap.put(user.getName(), user);
+        servlet.userMap.put(user.getName(), new UserData(user));
         servlet.doPut(request, response);
 
         verify(response).setStatus(HttpServletResponse.SC_ACCEPTED);
@@ -342,7 +343,7 @@ public class UserServletTest {
         Gson gson = new GsonBuilder().create();
         User user = gson.fromJson(USER_JSON, User.class);
         UserServlet servlet = new UserServlet();
-        servlet.userMap.put(user.getName(), user);
+        servlet.userMap.put(user.getName(), new UserData(user));
         servlet.doDelete(request, response);
 
         verify(response).setStatus(HttpServletResponse.SC_OK);
@@ -377,7 +378,7 @@ public class UserServletTest {
         Gson gson = new GsonBuilder().create();
         User user = gson.fromJson(USER_JSON, User.class);
         UserServlet servlet = new UserServlet();
-        servlet.userMap.put(user.getName(), user);
+        servlet.userMap.put(user.getName(), new UserData(user));
         servlet.doDelete(request, response);
 
         verify(response).sendError(HttpServletResponse.SC_NOT_FOUND, UserServlet.USER_ID_DOES_NOT_EXIST);
@@ -393,7 +394,7 @@ public class UserServletTest {
         Gson gson = new GsonBuilder().create();
         User user = gson.fromJson(USER_JSON, User.class);
         UserServlet servlet = new UserServlet();
-        servlet.userMap.put(user.getName(), user);
+        servlet.userMap.put(user.getName(), new UserData(user));
         servlet.doDelete(request, response);
 
         verify(response).sendError(HttpServletResponse.SC_BAD_REQUEST, UserServlet.BAD_COMMAND);

@@ -1,7 +1,7 @@
 package com.example.user;
 
 /**
- * The data that is persisted for a user.
+ * The identification data for the user.
  */
 public class User {
 

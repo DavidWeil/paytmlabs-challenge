@@ -2,24 +2,28 @@ package com.example.product;
 
 import com.example.data.*;
 import com.example.data.deserializers.*;
+import com.example.user.Recent;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 
 import javax.servlet.ServletException;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.*;
 import java.lang.reflect.Type;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.List;
+import java.util.Scanner;
 
 /**
  * Displays a page containing information on products from the LCBO.
+ *
+ * This servlet responds to 2 different requests: "/product" which returns a paged list of all LCBO products and
+ * "/product/{id}" which returns a page specific to that one product.
  */
 public final class ProductServlet extends HttpServlet {
 
@@ -79,7 +83,7 @@ public final class ProductServlet extends HttpServlet {
             }
             else {
                 String pageURL = getBaseUrl(request);
-                showListPage(response, pageURL, results);
+                showListPage(request, response, pageURL, results);
             }
         }
 
@@ -102,6 +106,9 @@ public final class ProductServlet extends HttpServlet {
                 return;
             }
 
+            // Note that the user viewed this product (add it to the recent list)
+            recordRecent(request, productID, results.getResult());
+
             if (sendJSON) {
                 response.setContentType("application/json");
                 PrintWriter writer = response.getWriter();
@@ -109,7 +116,7 @@ public final class ProductServlet extends HttpServlet {
                 writer.flush();
             }
             else {
-                showProductPage(response, results);
+                showProductPage(request, response, results);
             }
         }
     }
@@ -120,6 +127,52 @@ public final class ProductServlet extends HttpServlet {
         String serverPort = (request.getServerPort() == 80) ? "" : ":" + request.getServerPort();
         String contextPath = request.getContextPath();
         return scheme + serverName + serverPort + contextPath;
+    }
+
+    // Note we've already validated the product ID.
+    private void recordRecent(HttpServletRequest request, String productID, Product product) throws IOException {
+
+        String user = getCookieValue(request, "LCBOUser");
+        if (user == null) {
+            // This could be cleaner...
+            throw new IllegalStateException("Viewing page without a logged-in user");
+        }
+
+        HttpURLConnection connection = (HttpURLConnection)
+                new URL(getExternalUrl(request) + "/user/" + user + "/recent/" + productID).openConnection();
+
+        connection.setDoOutput(true);
+        connection.setRequestMethod("POST");
+        Writer writer = new OutputStreamWriter(connection.getOutputStream());
+        Recent recent = new Recent(productID, product.getName(), product.getThumbURL());
+        gson.toJson(recent, writer);
+        writer.flush();
+        connection.connect();
+
+        int status = connection.getResponseCode();
+        if (status != HttpServletResponse.SC_OK && status != HttpServletResponse.SC_ACCEPTED) {
+            throw new IOException("Error persisting recent value: " + connection.getResponseMessage());
+        }
+    }
+
+    private String getCookieValue(HttpServletRequest request, String cookieName) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies == null) {
+            return null;
+        }
+        for (Cookie cookie : cookies) {
+            if (cookie.getName().equals(cookieName)) {
+                return cookie.getValue();
+            }
+        }
+        return null;
+    }
+
+    private static String getExternalUrl(HttpServletRequest request) {
+        String scheme = request.getScheme() + "://";
+        String serverName = request.getServerName();
+        String serverPort = (request.getServerPort() == 80) ? "" : ":" + request.getServerPort();
+        return scheme + serverName + serverPort;
     }
 
     private ListResponse<Product> getProductList(int page) throws IOException {
@@ -164,8 +217,8 @@ public final class ProductServlet extends HttpServlet {
         }
     }
 
-    private void showListPage(HttpServletResponse response, String pageURL, ListResponse<Product> results)
-            throws IOException {
+    private void showListPage(HttpServletRequest request, HttpServletResponse response, String pageURL,
+            ListResponse<Product> results) throws IOException {
 
         response.setContentType("text/html");
         PrintWriter writer = response.getWriter();
@@ -207,6 +260,12 @@ public final class ProductServlet extends HttpServlet {
             writer.println("Next Page");
         }
 
+        String recentContent = fetchRecent(request);
+        if (recentContent != null && !recentContent.isEmpty()) {
+            writer.println("<h2>Recently Viewed</ht>");
+            writer.append(recentContent);
+        }
+
         writer.println("</body>");
         writer.println("</html>");
     }
@@ -228,7 +287,8 @@ public final class ProductServlet extends HttpServlet {
         throw new IOException("Error response: " + status);
     }
 
-    private void showProductPage(HttpServletResponse response, SimpleResponse<Product> results) throws IOException {
+    private void showProductPage(HttpServletRequest request, HttpServletResponse response,
+            SimpleResponse<Product> results) throws IOException {
 
         response.setContentType("text/html");
         PrintWriter writer = response.getWriter();
@@ -263,7 +323,39 @@ public final class ProductServlet extends HttpServlet {
         writer.println("</tr>");
         writer.println("</table>");
 
+        String recentContent = fetchRecent(request);
+        if (recentContent != null && !recentContent.isEmpty()) {
+            writer.println("<h2>Recently Viewed</ht>");
+            writer.append(recentContent);
+        }
+
         writer.println("</body>");
         writer.println("</html>");
+    }
+
+    // Retrieve the set of recently-viewed products for inclusion in the product page.
+    private String fetchRecent(HttpServletRequest request) throws IOException {
+
+        String user = getCookieValue(request, "LCBOUser");
+        if (user == null) {
+            // This could be cleaner...
+            throw new IllegalStateException("Viewing page without a logged-in user");
+        }
+
+        HttpURLConnection connection = (HttpURLConnection)
+                new URL(getExternalUrl(request) + "/user/" + user + "/recent").openConnection();
+        connection.setRequestMethod("GET");
+        // Get HTML for direct inclusion in this page.
+        connection.setRequestProperty("Accept", "text/html");
+        connection.connect();
+
+        int status = connection.getResponseCode();
+        if (status == 200) {
+            // Read the response into a String and return it.
+            try (Scanner s = new java.util.Scanner(connection.getInputStream())) {
+                return s.useDelimiter("\\A").hasNext() ? s.next() : "";
+            }
+        }
+        throw new IOException("Error reading recent products: " + connection.getResponseMessage());
     }
 }
