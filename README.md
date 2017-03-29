@@ -33,35 +33,21 @@ Rather than package a database and build the access service, I opted (for simpli
 data locally in the User servlet.  That means that "persistence" is purely theoretical for now, but
 data will persist while the application is running.
 
-## Post Mortem
-I spent too much time fiddling with tools:  Kubernetes/Docker when I should have been simply
-deploying apps into a local tomcat instance for development, Jersey when I didn't know it well enough
-to understand its limitations.
-
-I also had overly ambitious plans; for example in stage 3 I was planning on including selecting a
-preferred store and reporting inventory levels at that location.
-
 ## Running the App
-The application - such as it is - works, at least.  Build the docker image for the product module
+The application minimal as it is, works.  Build the docker image for the product module
 and deploy it to your docker container.  It's a tomcat-based image, so it's exposing 8080.
-Connecting to `http://{container external URL/port}/product` will show a paged list of LCBO products.
-Selecting a product from the list will take you to a page with some details of that product.
-
-## Future thoughts
-In addition to more features in the base app:
-- selected store was to be passed back as a cookie in addition to being stored in the user, so the
-  selection would follow the user around without needing fast replication.
-- I was planning on adding a "featured product" inset to all pages based on a random choice.  (I
-  couldn't find anything that specifically retrieved sale products.)
-- I had some half-formed ideas for performing searches by pulling product data since the API lacks
-  any search features.
-- Using the store API and the inventory queries, I was going to add a suggestion of an alternative
-  nearby store to purchase a product at if it was not available at the user's selected store.
+Connecting to `http://{container external URL:port}/product` will take you to the login page and
+then show a paged list of LCBO products.  Selecting a product from the list will take you to a page
+with some details of that product.
 
 ## Bonus
-The idea is probably a bit half-baked, but an array of 256 shorts would create 4096 hash buckets
-which map to the last 3 hex digits of a product hash, while still only occupying 512 bytes.  There
-will be a high potential for false matches, but the test will be fairly cheap, and it satisfies
-the "no repeats" criterion.  If the user visits > 2000 products, I would reprocess their last 1000
-visits after they log out in the theory that they won't remember whether they've seen something that
-last popped up more than a 1000 pages previously.
+I did not complete this part of the challenge.  I have the infrastructure in place, but lack the
+time to add the necessary queries to find a random valid product and graft it into the pages.
+
+My idea here is probably a bit half-baked, but I use array of 256 shorts to create 4096 hash buckets
+which map to the last 3 hex digits of a product ID's hashcode.  It's fairly small - only occupying
+512 bytes, and reasonably fast to add and test for collisions.  There will obviously be a high
+potential for false matches, but the test is fairly cheap, and it satisfies the "no repeats" criterion
+
+Currently the table will just fill, but in a real application there would be a mechanism to time out
+older entries or flush the hash buckets periodically.
